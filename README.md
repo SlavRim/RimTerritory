@@ -67,6 +67,7 @@ public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 ```CSharp
 public override void Tick()
 {
+    base.Tick();
     PawnLocator?.Tick();
 }
 ```
@@ -74,6 +75,7 @@ public override void Tick()
 ```CSharp
 public override void ExposeData()
 {
+    base.ExposeData();
     Territory?.ExposeData();
 }
 ```
