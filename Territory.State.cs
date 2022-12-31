@@ -13,7 +13,7 @@ public partial class Territory
     private IntVec2? size;
     public virtual IntVec2 Size => size ??= (Owner?.def?.size ?? IntVec2.One);
 
-    protected HashSet<Thing> enteredThings;
+    protected HashSet<Thing> enteredThings = new();
     public IReadOnlyCollection<Thing> EnteredThings => enteredThings.Where(IsInside).ToList();
     public IReadOnlyCollection<Pawn> EnteredPawns => EnteredThings.OfType<Pawn>().ToList();
 
