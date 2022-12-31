@@ -5,11 +5,6 @@
 		<ModSharedProps>$(ProjectDir)Shared.mod.props.csproj</ModSharedProps>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <Content Include="Assets\About\About.xml" />
-	  <Content Include="Assets\About\Preview.png" />
-	</ItemGroup>
-
 	<Import Project="$(ModSharedProps)" />
 
 </Project>
