@@ -1,43 +1,59 @@
 ﻿namespace RimTerritory;
 
-public partial class Territory
+public abstract partial class Territory : IExposable
 {
     public Territory(Thing owner)
     {
         Owner = owner;
     }
-    public Territory(Map map, CellRect rect)
+    public Territory(Map map)
     {
         this.map = map;
-        Rect = rect;
     }
 
-    public virtual bool IsEntered(Thing thing) => EnteredThings.Contains(thing);
-    public virtual bool IsInside(Thing thing) => IsInsideLocal(thing);
-    public virtual bool IsInsideLocal(LocalTargetInfo target) => IsInside(target.ToTargetInfo(Map));
-    public virtual bool IsInside(TargetInfo target) => Cells.Contains(target.Cell);
-    public virtual bool SetEnterState(Thing thing, bool? inside = null)
+    /// <summary>
+    /// Owner of this territory, 
+    /// </summary>
+    public Thing? Owner { get; }
+
+    protected readonly Map map;
+    /// <summary>
+    /// By default Owner map otherwise null or map from constructor.
+    /// </summary>
+    public virtual Map Map => Owner?.MapHeld ?? map;
+
+    /// <summary>
+    /// By default Owner position otherwise invalid.
+    /// </summary>
+    public virtual IntVec3 Position => Owner?.Position ?? IntVec3.Invalid;
+
+    protected HashSet<Thing> enteredThings = new();
+
+    public IReadOnlyCollection<Thing> EnteredThings => enteredThings.Where(IsInside).ToList();
+    public IReadOnlyCollection<Pawn> EnteredPawns => EnteredThings.OfType<Pawn>().ToList();
+
+    protected List<IntVec3> cells;
+    /// <summary>
+    /// Cached cells of this territory.
+    /// </summary>
+    public IReadOnlyList<IntVec3> Cells => cells ??= (GetCells().ToList());
+
+    /// <summary>
+    /// Finds cells of this territory.<br/>
+    /// Use <see cref="Cells"/> instead.
+    /// </summary>
+    protected abstract IEnumerable<IntVec3> GetCells();
+    public IReadOnlyList<IntVec3> UpdateCells()
     {
-        var result = inside ?? IsInside(thing);
-        if (result) TryEnter(thing);
-        else TryExit(thing);
-        return result;
-    }
-    protected void TryEnter(Thing thing)
-    {
-        if (IsEntered(thing))
-        {
-            CallEvents(EventType.Stay, thing);
-            return;
-        }
-        enteredThings.Add(thing);
-        CallEvents(EventType.Enter, thing);
+        cells = null;
+        return Cells;
     }
 
-    protected void TryExit(Thing thing)
+    /// <summary>
+    /// Saves/load entered things cache.
+    /// </summary>
+    public virtual void ExposeData()
     {
-        if (!IsEntered(thing)) return;
-        enteredThings.Remove(thing);
-        CallEvents(EventType.Exit, thing);
+        Scribe_Collections.Look(ref enteredThings, nameof(enteredThings));
     }
 }

@@ -2,18 +2,24 @@
 
 partial class Territory
 {
-    public class Radial : Territory
+    public partial class Radial : Territory
     {
         public Radial(Thing owner, float radius) : base(owner) 
         {
             Radius = radius;
         }
-        public Radial(Map map, float radius, CellRect rect) : base(map, rect) 
+        public Radial(Map map, IntVec2 size, float radius) : base(map) 
         {
             Radius = radius;
+            this.size = size;
         }
 
         public virtual float Radius { get; set; }
+        IntVec2 size;
+        /// <summary>
+        /// The size of center.
+        /// </summary>
+        public virtual IntVec2 Size => Owner?.def.Size ?? size;
 
         protected override IEnumerable<IntVec3> GetCells()
         {
@@ -28,8 +34,5 @@ partial class Territory
             }
             return cells.Distinct();
         }
-
-        [Obsolete("Unused in this context.")]
-        public override CellRect Rect => new();
     }
 }

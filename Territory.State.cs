@@ -2,48 +2,39 @@
 
 partial class Territory
 {
-    public Thing? Owner { get; }
+    public virtual bool IsEntered(Thing thing) => EnteredThings.Contains(thing);
+    public virtual bool IsInside(Thing thing) => IsInsideLocal(thing);
+    public virtual bool IsInsideLocal(LocalTargetInfo target) => IsInside(target.ToTargetInfo(Map));
+    public virtual bool IsInside(TargetInfo target) => Cells.Contains(target.Cell);
 
-    private readonly Map map;
-    public virtual Map Map => Owner?.MapHeld ?? map;
-
-    public virtual IntVec3 Position => Rect.CenterCell;
-    public virtual IntVec2 Size => new(Rect.Width, Rect.Height);
-
-    public virtual CellRect Rect
+    /// <summary>
+    /// Sets enter state of some<paramref name="thing"/>.
+    /// </summary>
+    /// <param name="thing"></param>
+    /// <param name="inside"><see langword="null"/> = actual value</param>
+    /// <returns></returns>
+    public virtual bool SetEnterState(Thing thing, bool? inside = null)
     {
-        get
-        {
-            if (rect.HasValue || Owner is null) return rect.Value;
-            var position = Owner.Position.ToIntVec2;
-            var size = Owner.def.size;
-            position -= size;
-            return rect ??= new(position.x, position.z, size.x, size.z);
-        }
-        set
-        {
-            rect = value;
-            UpdateCells();
-        }
+        var result = inside ?? IsInside(thing);
+        if (result) TryEnter(thing);
+        else TryExit(thing);
+        return result;
     }
-    private CellRect? rect;
-
-    protected HashSet<Thing> enteredThings = new();
-    public IReadOnlyCollection<Thing> EnteredThings => enteredThings.Where(IsInside).ToList();
-    public IReadOnlyCollection<Pawn> EnteredPawns => EnteredThings.OfType<Pawn>().ToList();
-
-    protected List<IntVec3> cells;
-    public IReadOnlyList<IntVec3> Cells => cells ??= (GetCells().ToList());
-
-    protected virtual IEnumerable<IntVec3> GetCells() => Rect.Cells;
-    public IReadOnlyList<IntVec3> UpdateCells()
+    protected void TryEnter(Thing thing)
     {
-        cells = null;
-        return Cells;
+        if (IsEntered(thing))
+        {
+            CallEvents(EventType.Stay, thing);
+            return;
+        }
+        enteredThings.Add(thing);
+        CallEvents(EventType.Enter, thing);
     }
 
-    public virtual void ExposeData()
+    protected void TryExit(Thing thing)
     {
-        Scribe_Collections.Look(ref enteredThings, nameof(enteredThings));
+        if (!IsEntered(thing)) return;
+        enteredThings.Remove(thing);
+        CallEvents(EventType.Exit, thing);
     }
 }
