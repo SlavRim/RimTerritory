@@ -2,23 +2,20 @@
 
 public partial class Territory
 {
-    public Territory(Thing owner, float radius)
+    public Territory(Thing owner)
     {
         Owner = owner;
-        Radius = radius;
     }
-    public Territory(Map map, float radius, IntVec3 position, IntVec2? size = null)
+    public Territory(Map map, CellRect rect)
     {
         this.map = map;
-        this.position = position;
-        this.size = size;
-        Radius = radius;
+        Rect = rect;
     }
 
     public virtual bool IsEntered(Thing thing) => EnteredThings.Contains(thing);
     public virtual bool IsInside(Thing thing) => IsInsideLocal(thing);
     public virtual bool IsInsideLocal(LocalTargetInfo target) => IsInside(target.ToTargetInfo(Map));
-    public virtual bool IsInside(TargetInfo target) => RadiusCells.Contains(target.Cell);
+    public virtual bool IsInside(TargetInfo target) => Cells.Contains(target.Cell);
     public virtual bool SetEnterState(Thing thing, bool? inside = null)
     {
         var result = inside ?? IsInside(thing);

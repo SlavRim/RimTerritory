@@ -42,7 +42,7 @@ public override void SpawnSetup(Map map, bool respawningAfterLoad)
     base.SpawnSetup(map, respawningAfterLoad);
 
     // Initialization of territory
-    Territory ??= new(this, Radius);
+    Territory ??= new Territory.Radial(this, Radius);
     var events = Territory.PawnEvents;
     events.OnEnter += PawnEnter;
     events.OnExit += PawnExit;
@@ -79,3 +79,5 @@ public override void ExposeData()
     Territory?.ExposeData();
 }
 ```
+
+### Code is still in testing stage, consider report issues if you find any!
