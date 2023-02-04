@@ -1,4 +1,6 @@
-﻿namespace RimTerritory;
+﻿using System.Threading.Tasks;
+
+namespace RimTerritory;
 
 partial class Territory
 {
@@ -28,44 +30,48 @@ partial class Territory
         /// </summary>
         public Func<ThingType, bool?>? EnteredStateGetter;
 
-        /// <summary>
-        /// Pool of things to search.
-        /// </summary>
-        public IReadOnlyCollection<ThingType> Pool => (
-            PoolSelector?.Invoke() ??
-            Territory?.Map?.listerThings.ThingsMatching(ThingRequest).OfType<ThingType>() ??
-            Enumerable.Empty<ThingType>()
-        ).ToList();
+        public IEnumerable<ThingType> GridPool() =>
+            Territory
+            .Cells
+            .SelectMany(Territory.Map.thingGrid.ThingsListAtFast)
+            .OfType<ThingType>()
+            .Where(ThingRequest.Accepts)
+            .ToList();
+
+        public IReadOnlyCollection<ThingType> ListerPool() => 
+            Territory
+            .Map.listerThings
+            .ThingsMatching(ThingRequest)
+            .OfType<ThingType>()
+            .ToList();
 
         /// <summary>
-        /// Locates things in <see cref="Pool"/> by <see cref="Predicate"/> and tries to update their enter state by <see cref="EnteredStateGetter"/> predicate.
+        /// Locates things in territory cells using <see cref="Predicate"/> and tries to update their enter state by <see cref="EnteredStateGetter"/> predicate.
         /// </summary>
-        public void Locate()
+        public Task Locate()
         {
-            var pool = Pool;
-            if (pool is null) return;
-            foreach (var thing in pool)
+            foreach (var cell in Territory.Cells)
             {
-                try
+                foreach (var thing in (PoolSelector ?? GridPool).Invoke())
                 {
                     if (Predicate?.Invoke(thing) ?? true)
                         Territory.SetEnterState(thing, EnteredStateGetter?.Invoke(thing));
                 }
-                catch { }
             }
+            return Task.CompletedTask;
         }
 
         private int tick;
         /// <summary>
         /// Calls <see cref="Locate"/> every <see cref="TicksDelay"/> ticks.
         /// </summary>
-        public void Tick()
+        public async void Tick()
         {
             if (Territory is null) return;
             if (++tick < TicksDelay) return;
             tick = 0;
 
-            Locate();
+            await Locate();
         }
     }
 }
