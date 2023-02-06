@@ -2,11 +2,15 @@
 
 public abstract partial class Territory : IExposable
 {
-    public Territory(Thing owner)
+    public Territory()
+    {
+        EnteredThings = enteredThings.AsReadonly();
+    }
+    public Territory(Thing owner) : this()
     {
         Owner = owner;
     }
-    public Territory(Map map)
+    public Territory(Map map) : this()
     {
         this.map = map;
     }
@@ -29,8 +33,17 @@ public abstract partial class Territory : IExposable
 
     protected HashSet<Thing> enteredThings = new();
 
-    public IReadOnlyCollection<Thing> EnteredThings => enteredThings.Where(IsInside).ToList();
-    public IReadOnlyCollection<Pawn> EnteredPawns => EnteredThings.OfType<Pawn>().ToList();
+    /// <summary>
+    /// Not guarantees that entered thins is inside, controlled by locator.
+    /// </summary>
+    public IReadOnlySet<Thing> EnteredThings { get; }
+    public IReadOnlyCollection<Pawn> EnteredPawns => EnteredThings.OfType<Pawn>().ToArray();
+
+    /// <summary>
+    /// Guarantees that entered thing is inside right now.
+    /// </summary>
+    public IReadOnlyCollection<Thing> EnteredThingsInside => enteredThings.Where(IsInside).ToArray();
+    public IReadOnlyCollection<Pawn> EnteredPawnsInside => EnteredThingsInside.OfType<Pawn>().ToArray();
 
     protected List<IntVec3> cells;
     /// <summary>
