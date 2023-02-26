@@ -67,6 +67,6 @@ public abstract partial class Territory : IExposable
     /// </summary>
     public virtual void ExposeData()
     {
-        Scribe_Collections.Look(ref enteredThings, nameof(enteredThings));
+        Scribe_Collections.Look(ref enteredThings, nameof(enteredThings), LookMode.Reference);
     }
 }
