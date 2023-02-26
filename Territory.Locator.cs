@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace RimTerritory;
+﻿namespace RimTerritory;
 
 partial class Territory
 {
@@ -12,7 +10,7 @@ partial class Territory
     /// <param name="Territory"></param>
     /// <param name="ThingRequest"></param>
     /// <param name="TicksDelay"></param>
-    public record struct Locator<ThingType>(Territory Territory, ThingRequest ThingRequest, int TicksDelay = 10)
+    public record Locator<ThingType>(Territory Territory, ThingRequest ThingRequest, int TicksDelay = 10)
         where ThingType : Thing
     {
         /// <summary>
@@ -48,30 +46,28 @@ partial class Territory
         /// <summary>
         /// Locates things in territory cells using <see cref="Predicate"/> and tries to update their enter state by <see cref="EnteredStateGetter"/> predicate.
         /// </summary>
-        public Task Locate()
+        public void Locate()
         {
-            foreach (var cell in Territory.Cells)
+            foreach (var thing in (PoolSelector ?? GridPool).Invoke()) 
             {
-                foreach (var thing in (PoolSelector ?? GridPool).Invoke())
-                {
-                    if (Predicate?.Invoke(thing) ?? true)
-                        Territory.SetEnterState(thing, EnteredStateGetter?.Invoke(thing));
-                }
+                if (!Territory.Cells.Contains(thing.Position)) return;
+
+                if (Predicate?.Invoke(thing) ?? true)
+                    Territory.SetEnterState(thing, EnteredStateGetter?.Invoke(thing));
             }
-            return Task.CompletedTask;
         }
 
         private int tick;
         /// <summary>
         /// Calls <see cref="Locate"/> every <see cref="TicksDelay"/> ticks.
         /// </summary>
-        public async void Tick()
+        public void Tick()
         {
             if (Territory is null) return;
             if (++tick < TicksDelay) return;
             tick = 0;
-
-            await Locate();
+            
+            Locate();
         }
     }
 }
