@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Configurations />
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<ModSharedProps>$(ProjectDir)Shared.mod.props.csproj</ModSharedProps>
+	</PropertyGroup>
+	
+	<Import Project="$(ModSharedProps)" />
+
+</Project>
