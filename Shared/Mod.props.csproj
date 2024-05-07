@@ -217,13 +217,6 @@
 		<UpToDateCheckInput Include="$(AssetsDir)**"/>
 	</ItemGroup>
 
-	<!-- Hide build directory -->
-	<ItemGroup>
-		<Compile Remove="$(AssetsDir)**/Assemblies/**" />
-		<EmbeddedResource Remove="$(AssetsDir)**/Assemblies/**" />
-		<None Remove="$(AssetsDir)**/Assemblies/**" />
-	</ItemGroup>
-
 	<!-- Cleaning -->
 	<Target Name="cleanup" AfterTargets="BeforeClean">
 		<RemoveDir Directories="$(GameModPath)" ContinueOnError="true" />
